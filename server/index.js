@@ -11,13 +11,21 @@ app.use(cors());
 
 // --- CONFIGURAÇÃO FIREBASE ADMIN ---
 try {
-  const serviceAccount = require("./firebase-admin-config.json");
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  let serviceAccount;
+  if (process.env.FIREBASE_CONFIG) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG);
+  } else {
+    serviceAccount = require("./firebase-admin-config.json");
+  }
+  
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  }
   console.log("Firebase Admin Inicializado! ✅");
 } catch (err) {
-  console.warn("⚠️ firebase-admin-config.json não encontrado. Webhooks de liberação não funcionarão até que seja configurado.");
+  console.warn("⚠️ Firebase Admin não configurado corretamente. Verifique a variável FIREBASE_CONFIG.");
 }
 
 const db = admin.firestore();
