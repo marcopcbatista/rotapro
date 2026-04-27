@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const { MercadoPagoConfig, PreApproval } = require('mercadopago');
 const fs = require('fs');
 const path = require('path');
+const { initSaaS } = require('./saas-core');
 
 require('dotenv').config();
 
@@ -51,6 +52,11 @@ try {
   console.error("❌ ERRO AO INICIALIZAR FIREBASE:", err);
 }
 // ==========================================================
+
+
+// ================= SAAS CORE ENGINE =================
+initSaaS(app);
+// ====================================================
 
 
 // ================= MERCADO PAGO =================
@@ -107,7 +113,7 @@ app.post("/api/create-subscription", async (req, res) => {
           currency_id: "BRL"
         },
         payer_email: email,
-        back_url: "https://rotapro.vercel.app/sucesso",
+        back_url: `${process.env.FRONTEND_URL || 'https://rotapro-alpha.vercel.app'}/sucesso`,
         external_reference: userId
       }
     });
@@ -170,7 +176,8 @@ app.get("/api/check-pro/:userId", async (req, res) => {
 });
 
 
-// =================================================
+// ================= USER ROUTES =================
+app.use("/api/users", require("./saas-core/api/user.routes"));
 
 
 // START SERVER

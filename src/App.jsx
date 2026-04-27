@@ -27,7 +27,11 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState('list'); // Mobile active tab: 'list' | 'map'
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+  const getApiUrl = () => {
+    const url = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+    return url.endsWith('/api') ? url : `${url}/api`;
+  };
+  const API_URL = getApiUrl();
 
   // Reset optimization when deliveries change (new ones added or removed)
   React.useEffect(() => {
