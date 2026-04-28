@@ -41,14 +41,21 @@ export default function Sidebar({ deliveries, addDelivery, markAsDelivered, remo
     try {
       const { data: { text } } = await Tesseract.recognize(file, 'por');
       const lines = text.split('\n');
+      
+      // Regex para endereços brasileiros: Rua/Av/Travessa + nome + número ou CEP
+      const addressPattern = /(?:rua|av|avenida|travessa|alameda|rodovia|estrada|praca|pça)\s+[a-z0-9\s]+(\d+)?|(\d{5}-?\d{3})/i;
+      
       const potentialAddresses = lines
         .map(l => l.trim())
-        .filter(l => l.length > 5 && (l.includes('Rua') || l.includes('Av') || l.includes('Travessa') || l.includes('Alameda') || /\d{5}-?\d{3}/.test(l)));
+        .filter(l => l.length > 8 && addressPattern.test(l))
+        .map(l => l.replace(/^[^\w]+|[^\w]+$/g, '')); // Limpa caracteres especiais nas pontas
       
       if (potentialAddresses.length > 0) {
-        setOcrResults(potentialAddresses);
+        // Remover duplicados
+        const unique = [...new Set(potentialAddresses)];
+        setOcrResults(unique);
       } else {
-        showFeedback('Nenhum endereço encontrado na imagem.', 'warning');
+        showFeedback('Nenhum endereço claro encontrado. Tente focar melhor na etiqueta.', 'warning');
       }
     } catch (err) {
       console.error(err);
@@ -435,6 +442,33 @@ export default function Sidebar({ deliveries, addDelivery, markAsDelivered, remo
             <p style={{ fontSize: '0.938rem', fontWeight: 900 }}>INICIAR ROTA</p>
           </div>
         </button>
+
+        {deliveries.filter(d => d.status === 'pending').length >= 2 && (
+          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+            <button 
+              onClick={() => {
+                const pending = deliveries.filter(d => d.status === 'pending');
+                const waypoints = pending.slice(0, -1).map(d => encodeURIComponent(d.address)).join('|');
+                const destination = encodeURIComponent(pending[pending.length - 1].address);
+                window.open(`https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${destination}&waypoints=${waypoints}&travelmode=driving`, '_blank');
+              }}
+              className="btn-ghost w-full"
+              style={{ fontSize: '0.7rem', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <Map size={14} /> Maps
+            </button>
+            <button 
+              onClick={() => {
+                const destination = encodeURIComponent(deliveries.filter(d => d.status === 'pending')[0].address);
+                window.open(`https://waze.com/ul?q=${destination}&navigate=yes`, '_blank');
+              }}
+              className="btn-ghost w-full"
+              style={{ fontSize: '0.7rem', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <Navigation size={14} /> Waze
+            </button>
+          </div>
+        )}
 
         {!isPro && (
           <p className="text-xs text-center text-muted" style={{ marginTop: 8 }}>

@@ -7,6 +7,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import SuccessPage from './components/SuccessPage';
 import LoginModal from './components/LoginModal';
 import LandingPage from './components/LandingPage';
+import SalesPage from './components/SalesPage';
 import { useDeliveries } from './hooks/useDeliveries';
 import { signOut } from 'firebase/auth';
 import { auth } from './services/firebase';
@@ -270,7 +271,7 @@ function App() {
       <Route path="/admin" element={<Dashboard onBack={() => navigate('/')} />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/sucesso" element={<SuccessPage />} />
-      <Route path="/vendas" element={<LandingPage />} />
+      <Route path="/vendas" element={<SalesPage />} />
     </Routes>
   );
 }

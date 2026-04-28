@@ -127,34 +127,54 @@ app.post("/api/create-subscription", async (req, res) => {
 });
 
 
-// WEBHOOK
+// WEBHOOK (Ativação Automática)
 app.post("/api/webhook", async (req, res) => {
-  const { type, data } = req.body;
+  const { type, data, action } = req.body;
+  console.log(`📩 Webhook recebido: ${type || action} ID: ${data?.id || req.body?.data?.id}`);
 
   try {
-    if (type === 'subscription_preapproval') {
-
+    // 1. Caso seja uma Assinatura (PreApproval)
+    if (type === 'subscription_preapproval' || action === 'subscription_preapproval.updated') {
+      const id = data?.id || req.body?.data?.id;
       const preApproval = new PreApproval(client);
-      const subscription = await preApproval.get({ id: data.id });
+      const subscription = await preApproval.get({ id });
 
       const userId = subscription.external_reference;
       const status = subscription.status;
 
-      const userRef = db.collection('users').doc(userId);
-
-      if (status === 'authorized') {
-        await userRef.set({
+      if (userId && status === 'authorized') {
+        await db.collection('users').doc(userId).set({
           isPaid: true,
+          subscriptionId: id,
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-
-        console.log("✅ Usuário virou PRO:", userId);
+        console.log("✅ Assinatura Ativada PRO para:", userId);
       }
+    }
+    
+    // 2. Caso seja um Pagamento Avulso (Preference)
+    if (type === 'payment' || action === 'payment.created' || action === 'payment.updated') {
+      const id = data?.id || req.body?.data?.id;
+      const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+        headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` }
+      });
+      const payment = await response.json();
 
+      if (payment.status === 'approved') {
+        const userId = payment.external_reference;
+        if (userId) {
+          await db.collection('users').doc(userId).set({
+            isPaid: true,
+            paymentId: id,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          console.log("✅ Pagamento Aprovado PRO para:", userId);
+        }
+      }
     }
 
   } catch (err) {
-    console.error("Erro webhook:", err);
+    console.error("❌ Erro processando webhook:", err);
   }
 
   res.sendStatus(200);
