@@ -13,37 +13,39 @@ export default function SuccessPage() {
   ];
 
   return (
-    <div className="success-page animate-fade-in">
-      <div className="success-icon">
-        <CheckCircle size={48} color="white" />
+    <div className="success-page animate-fade-in-scale">
+      <div className="success-icon glow-pulse">
+        <CheckCircle size={56} color="white" />
       </div>
 
-      <h1 style={{ 
-        fontSize: '2rem', 
-        fontWeight: 900, 
-        letterSpacing: '-0.03em',
-        marginBottom: '8px'
+      <h1 className="text-gradient" style={{ 
+        fontSize: '2.5rem', 
+        fontWeight: 950, 
+        letterSpacing: '-0.04em',
+        marginBottom: '12px'
       }}>
-        Assinatura Ativada! 🎉
+        Bem-vindo ao Elite! 🏆
       </h1>
       
       <p style={{ 
-        color: 'var(--text-muted)', 
-        fontSize: '1rem',
-        maxWidth: '400px',
-        lineHeight: 1.6
+        color: 'var(--text-secondary)', 
+        fontSize: '1.125rem',
+        maxWidth: '500px',
+        lineHeight: 1.6,
+        fontWeight: 500,
+        marginBottom: '40px'
       }}>
-        Parabéns! Seu plano <strong style={{ color: 'var(--primary)' }}>RotaPro Premium</strong> está ativo. 
-        Aproveite todos os recursos profissionais.
+        Seu plano <strong className="text-gradient">RotaPro Premium</strong> foi ativado com sucesso. 
+        Sua conta agora tem superpoderes logísticos.
       </p>
 
       <div className="success-features">
         {features.map((f, i) => (
-          <div key={i} className="success-feature" style={{ animationDelay: `${i * 0.1}s` }}>
-            <div className="success-feature-icon" style={{ background: `${f.color}15`, color: f.color }}>
+          <div key={i} className="success-feature card" style={{ animationDelay: `${i * 0.1}s`, borderLeft: `4px solid ${f.color}` }}>
+            <div className="success-feature-icon" style={{ background: `${f.color}20`, color: f.color }}>
               {f.icon}
             </div>
-            <span>{f.label}</span>
+            <span style={{ fontWeight: 700 }}>{f.label}</span>
           </div>
         ))}
       </div>
@@ -51,11 +53,11 @@ export default function SuccessPage() {
       <button 
         onClick={() => navigate('/')} 
         className="btn-primary"
-        style={{ marginTop: '40px', padding: '16px 32px', fontSize: '1rem' }}
+        style={{ marginTop: '56px', padding: '18px 48px', fontSize: '1.125rem' }}
         id="success-go-home"
       >
-        Começar a Usar
-        <ArrowRight size={20} />
+        Acessar Painel PRO
+        <ArrowRight size={22} />
       </button>
     </div>
   );
