@@ -40,7 +40,7 @@ function MainApp() {
     setOptimizedDeliveries([]);
   }, [deliveries.length]);
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (amount = 29.90, planName = "RotaPro Profissional") => {
     if (!user) {
       setShowLogin(true);
       return;
@@ -49,7 +49,12 @@ function MainApp() {
       const res = await fetch(`${API_URL}/create-subscription`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, userId: user.uid })
+        body: JSON.stringify({ 
+          email: user.email, 
+          userId: user.uid,
+          amount: amount,
+          planName: planName
+        })
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;

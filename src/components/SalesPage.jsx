@@ -6,9 +6,39 @@ import {
   MessageSquare, Users, TrendingUp 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../services/firebase';
 
 export default function SalesPage() {
   const navigate = useNavigate();
+
+  const handleUpgrade = async (amount, planName) => {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Por favor, faça login ou cadastre-se primeiro para escolher um plano.");
+      navigate('/'); // Redireciona para o login/home
+      return;
+    }
+    
+    try {
+      const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/$/, '') + '/api';
+      const cleanUrl = API_URL.replace('/api/api', '/api'); // Safety fix
+      
+      const res = await fetch(cleanUrl + '/create-subscription', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: user.email, 
+          userId: user.uid,
+          amount,
+          planName
+        })
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Erro ao processar pagamento:", err);
+    }
+  };
 
   const benefits = [
     {
@@ -176,29 +206,115 @@ export default function SalesPage() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section style={{ padding: '100px 24px', background: 'linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.05))' }}>
-        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
-          <p className="text-gradient font-bold mb-4 uppercase tracking-widest">Preço Justo</p>
-          <h2 style={{ fontSize: '3rem', fontWeight: 950, marginBottom: 40 }}>Escolha seu Plano</h2>
+      {/* PRICING SECTION - ATUALIZADA CONFORME IMAGEM */}
+      <section id="planos" style={{ padding: '100px 24px', background: 'var(--bg-main)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 950, marginBottom: 60 }}>
+            Escolha o <span className="text-gradient">plano ideal</span> para você
+          </h2>
           
-          <div className="card" style={{ padding: 48, position: 'relative', border: '2px solid var(--primary)' }}>
-            <div style={{ position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)', background: 'var(--primary)', color: 'white', padding: '6px 20px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 900 }}>
-              MAIS POPULAR
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 24, alignItems: 'center' }}>
+            
+            {/* Plano Básico */}
+            <div className="card" style={{ padding: '40px 32px', textAlign: 'left', border: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: 8 }}>Básico</h3>
+              <p style={{ fontSize: '0.813rem', color: 'var(--text-muted)', marginBottom: 24 }}>Perfeito para quem está começando</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
+                <span style={{ fontSize: '1.125rem', fontWeight: 700 }}>R$</span>
+                <span style={{ fontSize: '2.5rem', fontWeight: 950 }}>19,90</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>/mês</span>
+              </div>
+              <button 
+                onClick={() => handleUpgrade(19.90, "RotaPro Básico")} 
+                className="btn-ghost w-full mb-8" 
+                style={{ border: '1px solid var(--border)', fontWeight: 800 }}
+              >
+                Começar agora
+              </button>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, listStyle: 'none' }}>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Até 50 entregas por mês</li>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Rotas otimizadas</li>
+              </ul>
             </div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: 8 }}>RotaPro Premium</h3>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, margin: '24px 0' }}>
-              <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>R$</span>
-              <span style={{ fontSize: '4rem', fontWeight: 950 }}>29,90</span>
-              <span style={{ color: 'var(--text-muted)' }}>/mês</span>
+
+            {/* Plano Profissional (O SEU DESTAQUE) */}
+            <div className="card" style={{ 
+              padding: '48px 32px', textAlign: 'left', 
+              border: '2px solid var(--primary)', 
+              position: 'relative',
+              background: 'linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%)',
+              transform: 'scale(1.05)',
+              zIndex: 2
+            }}>
+              <div style={{ 
+                position: 'absolute', top: -16, left: '50%', transform: 'translateX(-50%)', 
+                background: 'var(--primary)', color: 'white', padding: '4px 16px', 
+                borderRadius: 99, fontSize: '0.625rem', fontWeight: 900, letterSpacing: '0.05em'
+              }}>
+                MAIS ESCOLHIDO
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: 8 }}>Profissional</h3>
+              <p style={{ fontSize: '0.813rem', color: 'var(--text-muted)', marginBottom: 24 }}>Para entregadores que querem mais resultado</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
+                <span style={{ fontSize: '1.125rem', fontWeight: 700 }}>R$</span>
+                <span style={{ fontSize: '2.5rem', fontWeight: 950 }}>29,90</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>/mês</span>
+              </div>
+              <button 
+                onClick={() => handleUpgrade(29.90, "RotaPro Profissional")} 
+                className="btn-primary w-full mb-8" 
+                style={{ fontWeight: 900, padding: '14px' }}
+              >
+                Começar agora
+              </button>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, listStyle: 'none' }}>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Entregas ilimitadas</li>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Rotas otimizadas</li>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Leitor de etiquetas (OCR)</li>
+              </ul>
             </div>
-            <ul style={{ textAlign: 'left', marginBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <li style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Check size={18} color="#10b981" /> Rotas Ilimitadas</li>
-              <li style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Check size={18} color="#10b981" /> Leitor de Etiquetas (Câmera)</li>
-              <li style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Check size={18} color="#10b981" /> Exportação para Waze/Maps</li>
-              <li style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Check size={18} color="#10b981" /> Prioridade no Suporte</li>
-            </ul>
-            <button onClick={() => navigate('/')} className="lp-btn-primary w-full">ASSINAR AGORA</button>
+
+            {/* Plano Avançado */}
+            <div className="card" style={{ padding: '40px 32px', textAlign: 'left', border: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: 8 }}>Avançado</h3>
+              <p style={{ fontSize: '0.813rem', color: 'var(--text-muted)', marginBottom: 24 }}>Para equipes e alta performance</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
+                <span style={{ fontSize: '1.125rem', fontWeight: 700 }}>R$</span>
+                <span style={{ fontSize: '2.5rem', fontWeight: 950 }}>59,90</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>/mês</span>
+              </div>
+              <button 
+                onClick={() => handleUpgrade(59.90, "RotaPro Avançado")} 
+                className="btn-ghost w-full mb-8" 
+                style={{ border: '1px solid var(--border)', fontWeight: 800 }}
+              >
+                Começar agora
+              </button>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, listStyle: 'none' }}>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Entregas ilimitadas</li>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Tudo do plano Profissional</li>
+                <li style={{ display: 'flex', gap: 10, fontSize: '0.875rem' }}><Check size={16} color="#10b981" /> Suporte prioritário 24h</li>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Garantia */}
+          <div style={{ marginTop: 60, display: 'flex', justifyContent: 'center', gap: 40, flexWrap: 'wrap' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left' }}>
+                <ShieldCheck size={32} color="var(--primary)" />
+                <div>
+                  <p style={{ fontWeight: 800, fontSize: '0.875rem' }}>7 dias de garantia</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Teste sem riscos, devolvemos seu dinheiro.</p>
+                </div>
+             </div>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left' }}>
+                <CheckCircle size={32} color="#10b981" />
+                <div>
+                  <p style={{ fontWeight: 800, fontSize: '0.875rem' }}>Cancelamento fácil</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Sem fidelidade, cancele quando quiser.</p>
+                </div>
+             </div>
           </div>
         </div>
       </section>

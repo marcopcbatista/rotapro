@@ -99,17 +99,19 @@ app.get("/api/health", (req, res) => {
 // CRIAR ASSINATURA
 app.post("/api/create-subscription", async (req, res) => {
   try {
-    const { email, userId } = req.body;
+    const { email, userId, amount, planName } = req.body;
+    const finalAmount = parseFloat(amount) || 29.90;
+    const finalPlanName = planName || "RotaPro Premium";
 
     const preApproval = new PreApproval(client);
 
     const result = await preApproval.create({
       body: {
-        reason: "RotaPro Premium",
+        reason: finalPlanName,
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
-          transaction_amount: 29.90,
+          transaction_amount: finalAmount,
           currency_id: "BRL"
         },
         payer_email: email,
